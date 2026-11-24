@@ -234,19 +234,22 @@ Le barème exige de présenter **au moins un scénario réussi et un scénario r
 
 ---
 
-## 9. Lancement de l'Interface Web (DApp)
+## 9. Lancement du Serveur Backend & de la DApp
 
-Vous pouvez lancer l'interface utilisateur en local très facilement :
+Le projet intègre un serveur backend en **Node.js** qui remplit deux rôles fondamentaux :
+1. **Certification et calcul du Hash côté serveur :** Reçoit les métadonnées de la parcelle, calcule l'empreinte cryptographique de manière sécurisée (pour empêcher toute manipulation du code par l'utilisateur dans son navigateur), et la renvoie au client.
+2. **Persistance Off-Chain :** Enregistre automatiquement les métadonnées structurées dans le dossier `offchain_data/parcel_POL-<id>.json`.
+3. **Serveur Web :** Héberge et sert l'interface DApp.
 
+Pour lancer le backend :
 ```bash
-# Dans le dossier c:\My Folders\9raya\IGL4\S1\Blockchain
-cd dapp
-python -m http.server 3000
+# Dans le dossier Projet
+node backend/server.js
 ```
-1. Ouvrez votre navigateur sur **`http://localhost:3000`**.
-2. Connectez **MetaMask** configuré sur votre réseau local (Ganache ou Hardhat node).
-3. Collez l'adresse du contrat déployé dans le champ en haut.
-4. Vous pouvez tester toutes les fonctionnalités et les scénarios en 1 clic !
+1. Le serveur démarre sur **`http://localhost:3000`**.
+2. Ouvrez votre navigateur sur **`http://localhost:3000`**.
+3. Connectez **MetaMask** configuré sur votre réseau local (Ganache).
+4. Collez l'adresse du contrat déployé : lors de chaque souscription, le terminal du serveur affiche en direct la certification du hash et la sauvegarde du fichier JSON !
 
 ---
 

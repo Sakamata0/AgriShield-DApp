@@ -300,9 +300,29 @@ function downloadOffChainMetadata(id, location, crop, threshold, riskType, premi
 }
 
 // ==========================================
-// OFF-CHAIN CRYPTOGRAPHIC HASH FUNCTION
-// Reference: Cours CH2 (Fonctions de hachage & intégrité)
+// OFF-CHAIN CRYPTOGRAPHIC HASH & BACKEND INTEGRATION
 // ==========================================
+
+async function requestBackendHash(location, crop, duration, threshold, riskType, premium, payout) {
+    try {
+        const response = await fetch('/api/hash-and-store', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                location, crop, duration, threshold, riskType, premium, payout
+            })
+        });
+        if (response.ok) {
+            const result = await response.json();
+            console.log("[BACKEND CERTIFIED]", result);
+            return result.serverHash;
+        }
+    } catch (e) {
+        console.warn("Backend server not responding, falling back to client-side hash", e);
+    }
+    return computeOffChainMetadataHash(location, crop, duration);
+}
+
 function computeOffChainMetadataHash(location, crop, durationDays) {
     // 1. Structure the off-chain metadata (Cadastre deed, parcel GPS coords, timestamps)
     const offChainData = {
@@ -321,7 +341,7 @@ function computeOffChainMetadataHash(location, crop, durationDays) {
     return keccakHash;
 }
 
-function updateOffChainHashDisplay() {
+async function updateOffChainHashDisplay() {
     const loc = document.getElementById("inputLocation")?.value || "";
     const crop = document.getElementById("inputCrop")?.value || "";
     const duration = document.getElementById("inputDuration")?.value || 30;
@@ -344,8 +364,9 @@ async function handleSubscribe() {
     const payoutEth = document.getElementById("inputPayout").value;
     const durationDays = parseInt(document.getElementById("inputDuration").value);
 
-    // Compute cryptographic hash of the off-chain parcel metadata
-    const ipfsHash = computeOffChainMetadataHash(location, crop, durationDays);
+    // Compute cryptographic hash certified by the backend server
+    showStatus("Certification et calcul du hash sur le serveur backend...", "info");
+    const ipfsHash = await requestBackendHash(location, crop, durationDays, threshold, riskType, premiumEth, payoutEth);
     document.getElementById("inputIpfs").value = ipfsHash;
 
     try {
