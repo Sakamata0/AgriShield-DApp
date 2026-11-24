@@ -131,6 +131,9 @@ async function initContract() {
     localStorage.setItem("agrishield_contract_address", contractAddress);
 
     try {
+        if (agriContract) {
+            agriContract.removeAllListeners();
+        }
         agriContract = new ethers.Contract(contractAddress, AGRI_SHIELD_ABI, signer || provider);
         await refreshRole();
         await refreshMetrics();
@@ -399,21 +402,31 @@ async function testIllegalWithdrawal() {
 }
 
 // ==========================================
-// REAL-TIME EVENT LISTENER
+// REAL-TIME EVENT LISTENER (WITH DEDUPLICATION)
 // ==========================================
+
+const seenEventKeys = new Set();
 
 function listenToContractEvents() {
     if (!agriContract) return;
 
     agriContract.removeAllListeners();
 
-    agriContract.on("PoolFunded", (insurer, amount, newTotal) => {
+    agriContract.on("PoolFunded", (insurer, amount, newTotal, ev) => {
+        const key = ev && ev.transactionHash ? `${ev.transactionHash}_${ev.logIndex}` : null;
+        if (key && seenEventKeys.has(key)) return;
+        if (key) seenEventKeys.add(key);
+
         const eth = ethers.utils.formatEther(amount);
         logEventToUI("PoolFunded", `Assureur (${insurer.substring(0, 6)}...) a injecté ${eth} ETH de capital.`);
         refreshMetrics();
     });
 
-    agriContract.on("PolicySubscribed", (policyId, farmer, riskType, threshold, premium, payout) => {
+    agriContract.on("PolicySubscribed", (policyId, farmer, riskType, threshold, premium, payout, expTime, ev) => {
+        const key = ev && ev.transactionHash ? `${ev.transactionHash}_${ev.logIndex}` : null;
+        if (key && seenEventKeys.has(key)) return;
+        if (key) seenEventKeys.add(key);
+
         const pEth = ethers.utils.formatEther(payout);
         const rType = riskType === 0 ? "Sécheresse" : "Canicule";
         logEventToUI("PolicySubscribed", `Nouvelle police #POL-${policyId} souscrite par ${farmer.substring(0, 6)}... (${rType}, Garantie: ${pEth} ETH)`);
@@ -421,11 +434,19 @@ function listenToContractEvents() {
         loadFarmerPolicies();
     });
 
-    agriContract.on("WeatherReported", (policyId, location, val, triggered) => {
+    agriContract.on("WeatherReported", (policyId, location, val, triggered, ev) => {
+        const key = ev && ev.transactionHash ? `${ev.transactionHash}_${ev.logIndex}` : null;
+        if (key && seenEventKeys.has(key)) return;
+        if (key) seenEventKeys.add(key);
+
         logEventToUI("WeatherReported", `Relevé pour #POL-${policyId} (${location}) : Mesure = ${val}. Seuil franchi = ${triggered ? "OUI (Catastrophe)" : "NON"}`);
     });
 
-    agriContract.on("ClaimPaid", (policyId, farmer, amount) => {
+    agriContract.on("ClaimPaid", (policyId, farmer, amount, timestamp, ev) => {
+        const key = ev && ev.transactionHash ? `${ev.transactionHash}_${ev.logIndex}` : null;
+        if (key && seenEventKeys.has(key)) return;
+        if (key) seenEventKeys.add(key);
+
         const eth = ethers.utils.formatEther(amount);
         logEventToUI("ClaimPaid", `⚡ PAIEMENT INSTANTANÉ : ${eth} ETH versés directement à l'agriculteur ${farmer.substring(0, 6)}... !`);
         refreshMetrics();
@@ -513,6 +534,7 @@ function setupEventListeners() {
     document.getElementById("btnTestUnauthorizedOracle").addEventListener("click", testUnauthorizedOracle);
     document.getElementById("btnTestIllegalWithdrawal").addEventListener("click", testIllegalWithdrawal);
     document.getElementById("btnClearEvents").addEventListener("click", () => {
+        seenEventKeys.clear();
         document.getElementById("eventLogsContainer").innerHTML = '<div class="text-slate-500 py-3 text-center italic">Journal effacé.</div>';
     });
 }
