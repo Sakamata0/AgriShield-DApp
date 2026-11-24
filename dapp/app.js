@@ -54,6 +54,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     setupTabs();
     setupEventListeners();
+    updateOffChainHashDisplay();
 
     if (window.ethereum) {
         provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -238,8 +239,8 @@ async function loadFarmerPolicies() {
                             <span><i class="fa-solid fa-location-dot mr-1"></i>${p.farmLocation}</span>
                             <span><i class="fa-solid fa-triangle-exclamation mr-1"></i>${riskTypeLabel} ${p.threshold} ${unit}</span>
                         </div>
-                        <div class="text-[11px] text-slate-500 font-mono">
-                            CID IPFS : ${p.ipfsMetadataHash.substring(0, 20)}...
+                        <div class="text-[11px] text-slate-400 font-mono">
+                            Hash Off-Chain (Keccak-256) : <span class="text-emerald-400">${p.ipfsMetadataHash.substring(0, 18)}...</span>
                         </div>
                     </div>
                     <div class="text-right flex md:flex-col items-center md:items-end justify-between w-full md:w-auto border-t md:border-t-0 pt-2 md:pt-0 border-slate-700">
@@ -256,6 +257,39 @@ async function loadFarmerPolicies() {
     }
 }
 
+// ==========================================
+// OFF-CHAIN CRYPTOGRAPHIC HASH FUNCTION
+// Reference: Cours CH2 (Fonctions de hachage & intégrité)
+// ==========================================
+function computeOffChainMetadataHash(location, crop, durationDays) {
+    // 1. Structure the off-chain metadata (Cadastre deed, parcel GPS coords, timestamps)
+    const offChainData = {
+        parcelLocation: location ? location.trim() : "Siliana - Parcelle Nord 14",
+        cropType: crop ? crop.trim() : "Blé Dur",
+        validityDays: parseInt(durationDays) || 30,
+        deedCadastreRef: "CADASTRE-OFFCHAIN-TN-2026-B4",
+        standard: "AgriShield-OffChain-v1"
+    };
+
+    // 2. Convert to string and compute Keccak-256 cryptographic hash (Ethereum EVM standard)
+    const dataString = JSON.stringify(offChainData);
+    const hashBytes = ethers.utils.toUtf8Bytes(dataString);
+    const keccakHash = ethers.utils.keccak256(hashBytes);
+
+    return keccakHash;
+}
+
+function updateOffChainHashDisplay() {
+    const loc = document.getElementById("inputLocation")?.value || "";
+    const crop = document.getElementById("inputCrop")?.value || "";
+    const duration = document.getElementById("inputDuration")?.value || 30;
+    const inputIpfs = document.getElementById("inputIpfs");
+
+    if (inputIpfs) {
+        inputIpfs.value = computeOffChainMetadataHash(loc, crop, duration);
+    }
+}
+
 // Subscribe Policy Action
 async function handleSubscribe() {
     if (!agriContract) return showStatus("Veuillez d'abord connecter le contrat.", "error");
@@ -267,7 +301,10 @@ async function handleSubscribe() {
     const premiumEth = document.getElementById("inputPremium").value;
     const payoutEth = document.getElementById("inputPayout").value;
     const durationDays = parseInt(document.getElementById("inputDuration").value);
-    const ipfsHash = document.getElementById("inputIpfs").value;
+
+    // Compute cryptographic hash of the off-chain parcel metadata
+    const ipfsHash = computeOffChainMetadataHash(location, crop, durationDays);
+    document.getElementById("inputIpfs").value = ipfsHash;
 
     try {
         showStatus("Transaction en cours de confirmation...", "info");
@@ -537,4 +574,10 @@ function setupEventListeners() {
         seenEventKeys.clear();
         document.getElementById("eventLogsContainer").innerHTML = '<div class="text-slate-500 py-3 text-center italic">Journal effacé.</div>';
     });
+
+    // Real-time off-chain metadata hash updates
+    document.getElementById("inputLocation")?.addEventListener("input", updateOffChainHashDisplay);
+    document.getElementById("inputCrop")?.addEventListener("input", updateOffChainHashDisplay);
+    document.getElementById("inputDuration")?.addEventListener("input", updateOffChainHashDisplay);
+    document.getElementById("btnGenHash")?.addEventListener("click", updateOffChainHashDisplay);
 }

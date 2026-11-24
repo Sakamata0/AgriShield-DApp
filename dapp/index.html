@@ -244,9 +244,15 @@
                                            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-300 mb-1">Hash Off-Chain (IPFS)</label>
-                                    <input id="inputIpfs" type="text" value="QmXoypizjW3WknFiJnKLwHCnL72vedxjQk..."
-                                           class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono" />
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="block text-xs font-semibold text-slate-300">Hash Off-Chain (Keccak-256)</label>
+                                        <button type="button" id="btnGenHash" class="text-[10px] text-emerald-400 hover:text-emerald-300 underline font-medium">
+                                            <i class="fa-solid fa-arrows-rotate mr-0.5"></i> Recalculer
+                                        </button>
+                                    </div>
+                                    <input id="inputIpfs" type="text" readonly
+                                           class="w-full bg-slate-950 border border-emerald-500/40 rounded-lg px-3 py-2 text-xs text-emerald-300 focus:outline-none font-mono text-[11px]" />
+                                    <span class="text-[10px] text-slate-500 block mt-0.5">Calculé en direct via Keccak-256 des métadonnées foncières</span>
                                 </div>
                             </div>
 
