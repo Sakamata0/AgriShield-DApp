@@ -1,0 +1,33 @@
+{
+  "policyId": 1,
+  "standard": "AgriShield-OffChain-v1",
+  "parcelMetadata": {
+    "farmLocation": "Siliana - Parcelle Nord 14",
+    "cadastreDeedNumber": "TITRE-FONCIER-TN-2026-SIL-8842",
+    "cropType": "Blé Dur (Céréales)",
+    "surfaceAreaHectares": 12.5,
+    "gpsCoordinates": {
+      "latitude": 36.0847,
+      "longitude": 9.3708,
+      "boundaryPolygon": [
+        [36.0845, 9.3705],
+        [36.0850, 9.3712],
+        [36.0842, 9.3715],
+        [36.0838, 9.3707]
+      ]
+    }
+  },
+  "insuranceTerms": {
+    "riskType": "Drought (Sécheresse)",
+    "parametricThreshold": "Précipitations <= 20 mm",
+    "coverageDurationDays": 30,
+    "premiumAmountEth": "0.05",
+    "guaranteedPayoutEth": "0.25"
+  },
+  "iotWeatherStation": {
+    "stationId": "STATION-METEO-SILIANA-SUD-04",
+    "telemetryProtocol": "LoRaWAN / Satellite Feed",
+    "authorizedOracleAddress": "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2"
+  },
+  "timestamp": "2026-11-24T12:00:00.000Z"
+}

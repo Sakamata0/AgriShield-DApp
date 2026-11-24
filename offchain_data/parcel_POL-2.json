@@ -1,0 +1,33 @@
+{
+  "policyId": 2,
+  "standard": "AgriShield-OffChain-v1",
+  "parcelMetadata": {
+    "farmLocation": "Kairouan - Zone Sud 07",
+    "cadastreDeedNumber": "TITRE-FONCIER-TN-2026-KAI-4109",
+    "cropType": "Oliviers & Fourrage",
+    "surfaceAreaHectares": 25.0,
+    "gpsCoordinates": {
+      "latitude": 35.6781,
+      "longitude": 10.0963,
+      "boundaryPolygon": [
+        [35.6775, 10.0955],
+        [35.6788, 10.0970],
+        [35.6779, 10.0975],
+        [35.6770, 10.0960]
+      ]
+    }
+  },
+  "insuranceTerms": {
+    "riskType": "Heatwave (Canicule)",
+    "parametricThreshold": "Température >= 42 °C",
+    "coverageDurationDays": 45,
+    "premiumAmountEth": "0.08",
+    "guaranteedPayoutEth": "0.40"
+  },
+  "iotWeatherStation": {
+    "stationId": "STATION-METEO-KAIROUAN-CENTRE-02",
+    "telemetryProtocol": "LoRaWAN / Satellite Feed",
+    "authorizedOracleAddress": "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2"
+  },
+  "timestamp": "2026-11-24T12:30:00.000Z"
+}

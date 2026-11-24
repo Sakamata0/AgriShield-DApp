@@ -239,8 +239,12 @@ async function loadFarmerPolicies() {
                             <span><i class="fa-solid fa-location-dot mr-1"></i>${p.farmLocation}</span>
                             <span><i class="fa-solid fa-triangle-exclamation mr-1"></i>${riskTypeLabel} ${p.threshold} ${unit}</span>
                         </div>
-                        <div class="text-[11px] text-slate-400 font-mono">
-                            Hash Off-Chain (Keccak-256) : <span class="text-emerald-400">${p.ipfsMetadataHash.substring(0, 18)}...</span>
+                        <div class="text-[11px] text-slate-400 font-mono flex flex-wrap items-center gap-2">
+                            <span>Hash Off-Chain (Keccak-256) : <span class="text-emerald-400">${p.ipfsMetadataHash.substring(0, 18)}...</span></span>
+                            <button onclick="downloadOffChainMetadata(${p.id}, '${p.farmLocation}', '${p.cropType}', ${p.threshold}, ${p.riskType}, '${premiumEth}', '${payoutEth}', '${p.ipfsMetadataHash}')" 
+                                    class="text-[10px] text-sky-400 hover:text-sky-300 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded font-sans transition">
+                                <i class="fa-solid fa-file-code mr-1"></i> Télécharger JSON
+                            </button>
                         </div>
                     </div>
                     <div class="text-right flex md:flex-col items-center md:items-end justify-between w-full md:w-auto border-t md:border-t-0 pt-2 md:pt-0 border-slate-700">
@@ -255,6 +259,44 @@ async function loadFarmerPolicies() {
     } catch (e) {
         console.error("Error loading policies:", e);
     }
+}
+
+// Download / Export Off-Chain JSON Metadata File
+function downloadOffChainMetadata(id, location, crop, threshold, riskType, premium, payout, hash) {
+    const data = {
+        policyId: id,
+        standard: "AgriShield-OffChain-v1",
+        parcelMetadata: {
+            farmLocation: location,
+            cropType: crop,
+            cadastreDeedNumber: `TITRE-FONCIER-TN-2026-PAR-${id}`,
+            surfaceAreaHectares: 12.5,
+            gpsCoordinates: {
+                region: location,
+                boundaryPolygon: "Polygone GPS cadastre off-chain"
+            }
+        },
+        insuranceTerms: {
+            riskType: riskType === 0 ? "Drought (Sécheresse)" : "Heatwave (Canicule)",
+            parametricThreshold: riskType === 0 ? `Pluie <= ${threshold} mm` : `Température >= ${threshold} °C`,
+            premiumAmountEth: premium,
+            guaranteedPayoutEth: payout
+        },
+        iotWeatherStation: {
+            stationId: `STATION-METEO-${location.split('-')[0].trim().toUpperCase()}-01`,
+            telemetryProtocol: "LoRaWAN / Satellite Feed"
+        },
+        onChainAnchoredHash: hash,
+        timestamp: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `parcel_POL-${id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 // ==========================================
